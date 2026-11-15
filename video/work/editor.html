@@ -1,0 +1,104 @@
+<!doctype html><meta charset="utf-8"><title>Aimo Showcase Editor</title>
+<style>html,body{margin:0;background:#071426}canvas{width:100vw;height:100vh;object-fit:contain}</style>
+<canvas width="1920" height="1080"></canvas>
+<script>
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
+const W=1920,H=1080;
+window.progress={state:'loading'};
+const shots={};
+const loadImage=src=>new Promise((resolve,reject)=>{const i=new Image;i.onload=()=>resolve(i);i.onerror=reject;i.src=src;});
+const decode=async(ac,file)=>ac.decodeAudioData(await(await fetch('/'+file)).arrayBuffer());
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+function title(kicker,heading,sub,alpha=1){
+ ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle='#071426';ctx.fillRect(0,0,W,H);
+ const g=ctx.createRadialGradient(1450,200,20,1450,200,1100);g.addColorStop(0,'#064e72');g.addColorStop(1,'#071426');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#38bdf8';ctx.font='600 24px Arial';ctx.fillText(kicker.toUpperCase(),150,300);
+ ctx.fillStyle='white';ctx.font='700 88px Arial';heading.split('\n').forEach((line,i)=>ctx.fillText(line,145,425+i*105));
+ ctx.fillStyle='#b9cadb';ctx.font='32px Arial';ctx.fillText(sub,150,720);
+ ctx.fillStyle='#38bdf8';roundRect(150,810,70,6,3);ctx.fill();ctx.restore();
+}
+function screenshot(image,progress,label,detail){
+ ctx.fillStyle='#071426';ctx.fillRect(0,0,W,H);
+ // Fit the entire real app screenshot; restrained movement keeps controls readable.
+ const z=1+0.012*progress,iw=1760*z,ih=990*z,x=(W-iw)/2,y=28-(ih-990)/2;
+ ctx.save();roundRect(80,28,1760,990,18);ctx.clip();ctx.drawImage(image,x,y,iw,ih);ctx.restore();
+ ctx.fillStyle='#071426';ctx.fillRect(0,1018,W,62);
+ ctx.fillStyle='#38bdf8';ctx.font='600 22px Arial';ctx.fillText(label,82,1057);
+ ctx.fillStyle='#d4e2f0';ctx.font='21px Arial';ctx.textAlign='right';ctx.fillText(detail,1838,1057);ctx.textAlign='left';
+}
+// Keep sentence pauses. Only shorten sustained near-silence, with padding on both sides.
+function editAudio(ac,buffer){
+ const rate=buffer.sampleRate,n=buffer.length,step=Math.floor(rate*.02),mono=buffer.getChannelData(0),silent=[];
+ let run=-1;
+ for(let i=0;i<n;i+=step){let power=0;const end=Math.min(i+step,n);for(let j=i;j<end;j++)power+=mono[j]*mono[j];const quiet=Math.sqrt(power/(end-i))<0.003;
+  if(quiet&&run<0)run=i;if((!quiet||i+step>=n)&&run>=0){const stop=quiet?end:i;if((stop-run)/rate>1.1)silent.push([run,stop]);run=-1;}}
+ let cursor=0;const ranges=[];for(const [a,b]of silent){const left=Math.min(a+Math.floor(rate*.22),b),right=Math.max(left,b-Math.floor(rate*.22));if(left>cursor)ranges.push([cursor,left]);cursor=right;}if(cursor<n)ranges.push([cursor,n]);
+ const length=ranges.reduce((s,[a,b])=>s+b-a,0),result=ac.createBuffer(buffer.numberOfChannels,length,rate);
+ for(let c=0;c<buffer.numberOfChannels;c++){let offset=0;for(const[a,b]of ranges){result.getChannelData(c).set(buffer.getChannelData(c).subarray(a,b),offset);offset+=b-a;}}
+ return {buffer:result,removed:buffer.duration-result.duration,ranges:ranges.map(([a,b])=>[a/rate,b/rate])};
+}
+window.run=async function(){
+ const ac=new AudioContext({sampleRate:48000});await ac.resume();const dest=ac.createMediaStreamDestination();
+ const opener=document.createElement('video');opener.src='/opener.mp4';opener.preload='auto';opener.playsInline=true;
+ await new Promise((resolve,reject)=>{opener.onloadeddata=resolve;opener.onerror=reject;});
+ const openingAudio=ac.createMediaElementSource(opener);openingAudio.connect(dest);
+ const start=editAudio(ac,await decode(ac,'start.mp3')),body=editAudio(ac,await decode(ac,'body.mp3'));
+ const filenames=['01-home','02-request','03-products','04-requirements','05-limits','06-automations','07-console','08-approvals','09-orders','10-stock','11-agents','12-rules','13-activity','14-quote','15-confirmed','16-pending','17-approve-dialog','18-disruption'];
+ for(const name of filenames){try{shots[name]=await loadImage('/work/shots/'+name+'.png');}catch{}}
+ const total=opener.duration+start.buffer.duration+body.buffer.duration+3;
+ const intro=opener.duration;
+ const scenes=[
+  [0,5,null,'Aimo Agent Gateway','Purchasing authority starts with trust.'],
+  [5,10,'01-home','Meet Aimo','Your kitchen. Your purchasing assistant.'],
+  [10,15,'02-request','Start with a request','1,000 litres. Lactose-free. By Monday.'],
+  [15,24,'03-products','Find the right products','Compare price, availability and delivery.'],
+  [24,30,'14-quote','From inquiry to commitment','Review the fixed-price quote.'],
+  [30,35,'15-confirmed','Within its authority','The order goes through.'],
+  [35,41,'04-requirements','Your requirements','Hard requirements stay hard.'],
+  [41,47,'05-limits','Your authority','Set spending limits and approval rules.'],
+  [47,52,'16-pending','Over the limit?','It asks.'],
+  [52,58,'17-approve-dialog','Human approval','Review before anything is committed.'],
+  [58,62,'18-disruption','When plans change','Review the supplier problem and alternatives.'],
+  [62,66,'10-stock','Ahead of the next shortage','Stock, usage and suggested reorders.'],
+  [66,70,'06-automations','Ready for the next service','Plan ahead for stock and events.'],
+  [70,74,'13-activity','Trust you can inspect','What happened. Who acted. Why.'],
+  [74,78,'11-agents','Open by design','Connect external assistants through MCP.'],
+ ];
+ // Scale app shots to the actual supplied narration length; closing uses its final seconds.
+ const spoken=start.buffer.duration+body.buffer.duration;
+ const ratio=Math.max(.1,(spoken-3)/78);
+ function narration(buffer){
+  const source=ac.createBufferSource();source.buffer=buffer;
+  let power=0;const samples=buffer.getChannelData(0);for(let i=0;i<samples.length;i++)power+=samples[i]*samples[i];
+  const gain=ac.createGain();gain.gain.value=Math.max(.65,Math.min(1.8,.1/Math.sqrt(power/samples.length)));
+  source.connect(gain);gain.connect(dest);return source;
+ }
+ const sourceStart=narration(start.buffer),sourceBody=narration(body.buffer);
+ const stream=canvas.captureStream(30);for(const track of dest.stream.getAudioTracks())stream.addTrack(track);
+ const mime='video/mp4;codecs=avc1.420028,mp4a.40.2';
+ const recorder=new MediaRecorder(stream,{mimeType:MediaRecorder.isTypeSupported(mime)?mime:'video/mp4',videoBitsPerSecond:10000000,audioBitsPerSecond:192000});
+ const chunks=[];recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+ const first=ac.currentTime+.25;sourceStart.start(first+intro);sourceBody.start(first+intro+start.buffer.duration);
+ recorder.start(1000);const clock=performance.now()+250;
+ await new Promise(resolve=>setTimeout(resolve,250));await opener.play();
+ await new Promise(resolve=>{
+  function draw(){const elapsed=(performance.now()-clock)/1000;
+   window.progress={state:'rendering',seconds:elapsed,total};
+   if(elapsed<intro){ctx.fillStyle='black';ctx.fillRect(0,0,W,H);ctx.drawImage(opener,0,0,W,H);}
+   else {
+    const t=elapsed-intro;
+    if(t>=spoken-3){title('Aimo Agent Gateway','Your agents. Your rules.','Breakfast sorted.');}
+    else{const scaled=t/ratio;const s=scenes.find(s=>scaled>=s[0]&&scaled<s[1])||scenes[scenes.length-1];
+     if(s[2]&&shots[s[2]])screenshot(shots[s[2]],Math.min(1,(scaled-s[0])/(s[1]-s[0])),s[3],s[4]);
+     else title('Aimo Agent Gateway','Purchasing authority\nstarts with trust.',s[4]);
+    }
+   }
+   if(elapsed>=total){resolve();return;}requestAnimationFrame(draw);
+  }draw();
+ });
+ const blob=await new Promise(resolve=>{recorder.onstop=()=>resolve(new Blob(chunks,{type:'video/mp4'}));recorder.stop();});
+ const data=await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(',')[1]);r.readAsDataURL(blob);});
+ window.result={data,total,audioEdits:{start:{removed:start.removed,ranges:start.ranges},body:{removed:body.removed,ranges:body.ranges}},shots:Object.keys(shots)};
+ window.progress={state:'complete',total};await ac.close();
+};
+</script>

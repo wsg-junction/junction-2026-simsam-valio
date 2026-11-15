@@ -1,0 +1,188 @@
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useProductName } from '@/hooks/use-product-name';
+import { api, useOrder } from '@/lib/api';
+import type { Item, Order, PickEvent } from '@valio/shared';
+import { t } from 'i18next';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router';
+import { Header } from '../../components/Header';
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+
+export default function AimoPickingDashboard() {
+  const { t } = useTranslation();
+
+  const { orderId } = useParams();
+  const order = useOrder(orderId);
+
+  async function updateOrder(order: Order) {
+    await api.updateOrder(order);
+  }
+
+  const navigate = useNavigate();
+  function getOrderToConfirm() {
+    const orderCopy = structuredClone(order!);
+    orderCopy.products = Object.values(orderCopy.products).filter(
+      (it) => it.orderedQuantity !== it.pickEvent?.quantity,
+    );
+    return orderCopy.products.length ? orderCopy : null;
+  }
+
+  const isSubmitDisabled = useMemo(() => {
+    if (!order) return true;
+
+    return order.products.some(
+      (product) => !product.pickEvent || product.pickEvent.quantity > product.orderedQuantity,
+    );
+  }, [order]);
+
+  const onPickEvent = (pickEvent: PickEvent | null, productId: string) => {
+    const product = order!.products.find((p) => p.id === productId)!;
+    if (pickEvent && pickEvent.quantity > product.orderedQuantity) return;
+    product.pickEvent = pickEvent;
+    updateOrder(order!);
+  };
+  function submit() {
+    const orderToConfirm = getOrderToConfirm();
+    if (orderToConfirm) {
+      navigate(`/aimo/orders/${orderId}/picking-dashboard/confirm`, { state: orderToConfirm });
+      return;
+    }
+    navigate('/aimo/orders');
+  }
+  return (
+    <>
+      <Header />
+      <div className="hero-container p-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/aimo">{t('warehouse_application')}</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/aimo/orders">{t('warehouse_orders')}</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{t('warehouse_order_picking')}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <div className="hero mt-4">
+          <h1 className={'text-lg font-bold'}>{t('warehouse_order_picking')}</h1>
+          <h3 className={'text-gray-800 dark:text-gray-400'}>{t('warehouse_order_picking_subtitle')}</h3>
+        </div>
+
+        <div className="flex flex-col gap-4 mt-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('product_name')}</TableHead>
+                <TableHead>{t('ordered_quantity')}</TableHead>
+                <TableHead style={{ width: '50%' }}>{t('picked_quantity')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.values(order?.products ?? {}).map((item) => (
+                <PickingRow
+                  key={item.id}
+                  item={item}
+                  setPickEvent={(e) => onPickEvent(e, item.id)}
+                />
+              ))}
+            </TableBody>
+          </Table>
+          <Button
+            className="w-32 self-end"
+            disabled={isSubmitDisabled}
+            onClick={submit}>
+            {t('submit')}
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function PickingRow({ item, setPickEvent }: { item: Item; setPickEvent: (event: PickEvent | null) => void }) {
+  const getTranslatedProductName = useProductName();
+
+  const quantity = item.pickEvent?.quantity;
+
+  const [error, setError] = useState<string | null>(calculateError(quantity ?? item.orderedQuantity));
+  const [errorColor, setErrorColor] = useState<string | undefined>(
+    calculateErrorColor(quantity ?? item.orderedQuantity),
+  );
+
+  function calculateError(value: number): string | null {
+    if (value > item.orderedQuantity) {
+      return t('error_quantity_greater');
+    } else if (value < item.orderedQuantity) {
+      return t('error_quantity_smaller');
+    } else {
+      return null;
+    }
+  }
+
+  function calculateErrorColor(value: number): string | undefined {
+    if (value > item.orderedQuantity) {
+      return 'red';
+    } else if (value < item.orderedQuantity) {
+      return 'orange';
+    } else {
+      return undefined;
+    }
+  }
+
+  function setQuantity(rawValue: number) {
+    setError(calculateError(rawValue));
+    setErrorColor(calculateErrorColor(rawValue));
+    const value = isNaN(rawValue) ? rawValue : Math.min(rawValue, item.orderedQuantity);
+    setPickEvent(isNaN(value) ? null : { quantity: value, datetime: new Date().toISOString() });
+  }
+
+  return (
+    <TableRow>
+      <TableCell>{getTranslatedProductName(item)}</TableCell>
+      <TableCell>{item.orderedQuantity}</TableCell>
+      <TableCell>
+        <div className="flex flex-col gap-2">
+          <ButtonGroup>
+            <Button
+              variant="outline"
+              className={quantity == item.orderedQuantity ? 'bg-[#eee8f5]' : ''}
+              onClick={() => setQuantity(item.orderedQuantity)}>
+              All
+            </Button>
+            <Button
+              variant="outline"
+              className={quantity == 0 ? 'bg-[#eee8f5]' : ''}
+              onClick={() => setQuantity(0)}>
+              None
+            </Button>
+            <Input
+              type="number"
+              value={quantity && quantity !== item.orderedQuantity ? quantity : undefined}
+              placeholder={t('aimo_picking_dashboard.picking_row.quantity_custom')}
+              className={quantity && quantity !== item.orderedQuantity ? 'bg-[#eee8f5]' : ''}
+              onChange={(event) => setQuantity(event.target.valueAsNumber)}
+              onFocus={(event) => event.target.select()}
+            />
+          </ButtonGroup>
+          <p style={{ color: errorColor }}>{error}</p>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}

@@ -1,0 +1,145 @@
+A
+Aimo Assistant
+Hotel Aurora Helsinki
+New chat
+4
+Assistant settings
+Automations
+Limits
+Requirements
+Chats
+I need 1,000 L of lactose-free milk by Monday
+More
+MV
+Maria Virtanen
+Head Chef · demo data
+Toggle Sidebar
+I need 1,000 L of lactose-free milk by Monday
+I need 1,000 L of lactose-free milk by Monday
+
+5 options. The best value is €1,376, all delivered by Mon 16 Nov. Heads-up: 1,000 L is about 23 days of your usual use (42.8 L/day), but it keeps 14 days. Fine for an event; for everyday use, order less, more often.
+
+1,000 × lactose-free milk · by Mon 16 Nov
+Meets your requirements
+Best value
+Lactose-free semi-skimmed milk drink 1.5%: Aimo Select 10 L bag-in-box + Pohjola 1 L carton
+40 × Aimo Select 10 L bag-in-box + 600 × Pohjola 1 L carton · €1.38/L · arrives Mon 16 Nov
+€1,376
+
+Chose these packs because 40 × 10 L bag-in-box and 600 × 1 L carton together cover the 1,000 L, arrive by Mon 16 Nov and cost €174 less than the next option that also meets the request.
+
+Quoted
+Partial
+Aimo Select · Lactose-free semi-skimmed milk drink 1.5% (10 L bag-in-box)
+100 × Aimo Select 10 L bag-in-box · €1.31/L · arrives Sat 21 Nov
+€1,310
+
+Covers the 1,000 L, partly arrives late, on Sat 21 Nov and saves €66 against best value, but needs approval.
+
+Get total quote · €1,310
+Alternative
+Pohjola · Lactose-free semi-skimmed milk drink 1.5% (1 L carton)
+1000 × Pohjola 1 L carton · €1.42/L · arrives Fri 20 Nov
+€1,420
+
+Covers the 1,000 L, partly arrives late, on Fri 20 Nov and costs €44 more than best value.
+
+Get total quote · €1,420
+Alternative
+Pohjola · Lactose-free whole milk drink 3.5% (1 L carton)
+1000 × Pohjola 1 L carton · €1.55/L · arrives Mon 16 Nov
+€1,550
+
+Covers the 1,000 L, arrives by Mon 16 Nov and costs €174 more than best value.
+
+Quoted
+Alternative
+Laakso · Organic lactose-free milk drink 1.5% (1 L carton)
+1000 × Laakso 1 L carton · €1.79/L · arrives Tue 17 Nov
+€1,790
+
+Covers the 1,000 L, partly arrives late, on Tue 17 Nov and costs €414 more than best value.
+
+Get total quote · €1,790
+Show fewer
+Get total quote · €1,376
+
+Here is your total quote. Nothing has been ordered.
+
+Your total quote
+€1,376
+
+Nothing ordered · Prices exclude VAT
+
+Aimo Select · Lactose-free semi-skimmed milk drink 1.5%
+400 L · 40 × Aimo Select 10 L bag-in-box · arrives Mon 16 Nov
+€524
+Pohjola · Lactose-free semi-skimmed milk drink 1.5%
+600 L · 600 × Pohjola 1 L carton · arrives Mon 16 Nov
+€852
+Total excl. VAT
+€1,376
+
+Chose these packs because 40 × 10 L bag-in-box and 600 × 1 L carton together cover the 1,000 L, arrive by Mon 16 Nov and cost €174 less than the next option that also meets the request.
+
+Quote valid until 08:24. Orders outside your limits will need approval.
+
+Submitted
+Order all · €1,376
+
+Order submitted. It's confirmed (€1,376).
+
+Order O-7F35D003
+Confirmed
+Lactose-free semi-skimmed milk drink 1.5%
+40 × Aimo Select 10 L bag-in-box · 400 L Mon 16 Nov
+€524
+Lactose-free semi-skimmed milk drink 1.5%
+600 × Pohjola 1 L carton · 600 L Mon 16 Nov
+€852
+Total excl. VAT
+€1,376
+
+Chose these packs because 40 × 10 L bag-in-box and 600 × 1 L carton together cover the 1,000 L, arrive by Mon 16 Nov and cost €174 less than the next option that also meets the request.
+
+Get total quote · €1,550
+
+Here is your total quote. Nothing has been ordered.
+
+Your total quote
+€1,550
+
+Nothing ordered · Prices exclude VAT
+
+Pohjola · Lactose-free whole milk drink 3.5%
+1,000 L · 1000 × Pohjola 1 L carton · arrives Mon 16 Nov
+€1,550
+Total excl. VAT
+€1,550
+
+Covers the 1,000 L, arrives by Mon 16 Nov and costs €174 more than best value.
+
+Quote valid until 08:24. Orders outside your limits will need approval.
+
+Submitted
+Order all · €1,550
+
+Order submitted. It's waiting for your approval (€1,550) because: €1,550.00 > €1,500.00 per order, €5,176.00 spent + €1,550.00 vs €6,000.00 budget.
+
+Order O-D5195519
+Needs your approval
+Lactose-free whole milk drink 3.5%
+1000 × Pohjola 1 L carton · 1,000 L Mon 16 Nov
+€1,550
+Total excl. VAT
+€1,550
+
+Covers the 1,000 L, arrives by Mon 16 Nov and costs €174 more than best value.
+
+Approval needed: €1,550.00 > €1,500.00 per order; €5,176.00 spent + €1,550.00 vs €6,000.00 budget. Approve it?
+
+Approve
+Reject
+Message
+
+Demo with synthetic data. Orders follow your limits and requirements; anything outside them waits for you.

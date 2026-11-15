@@ -1,0 +1,25 @@
+{
+  "name": "valio",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n gateway,assistant -c cyan,green \"npm:dev:mcp\" \"npm:dev:web\"",
+    "dev:api": "npm run dev --workspace @valio/api",
+    "dev:web": "npm run dev --workspace @valio/web",
+    "build": "npm run build --workspace @valio/api && npm run build --workspace @valio/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev:mcp": "npm run dev --workspace @valio/mcp",
+    "dev:console": "npm run dev --workspace @valio/console",
+    "build:gateway": "npm run build --workspace @valio/console && npm run build --workspace @valio/web && npm run build --workspace @valio/mcp",
+    "start:gateway": "npm run start --workspace @valio/mcp",
+    "dev:assistant": "npm run dev --workspace @valio/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.6.2"
+  }
+}

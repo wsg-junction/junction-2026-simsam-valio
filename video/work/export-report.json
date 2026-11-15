@@ -1,0 +1,44 @@
+{
+  "total": 87.841667,
+  "audioEdits": {
+    "start": {
+      "removed": 0,
+      "ranges": [
+        [
+          0,
+          57.92
+        ]
+      ]
+    },
+    "body": {
+      "removed": 0,
+      "ranges": [
+        [
+          0,
+          16.88
+        ]
+      ]
+    }
+  },
+  "shots": [
+    "01-home",
+    "02-request",
+    "03-products",
+    "04-requirements",
+    "05-limits",
+    "06-automations",
+    "07-console",
+    "08-approvals",
+    "09-orders",
+    "10-stock",
+    "11-agents",
+    "12-rules",
+    "13-activity",
+    "14-quote",
+    "15-confirmed",
+    "16-pending",
+    "17-approve-dialog",
+    "18-disruption"
+  ],
+  "bytes": 96694875
+}

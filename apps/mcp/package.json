@@ -1,0 +1,38 @@
+{
+  "name": "@valio/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Aimo Agent Gateway (mock): MCP server with MCP Apps widgets for external purchasing agents",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --import tsx --test src/assistant-purchase.test.ts src/supplier.test.ts src/catalog.test.ts",
+    "dev": "concurrently -n widget,server -c magenta,cyan \"vite build --watch\" \"tsx watch src/server.ts\"",
+    "build": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p widget/tsconfig.json && vite build && tsup",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p widget/tsconfig.json"
+  },
+  "dependencies": {
+    "@google/genai": "^3.3.0",
+    "@modelcontextprotocol/ext-apps": "^2.0.4",
+    "@modelcontextprotocol/node": "^2.1.2",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react-swc": "^4.2.1",
+    "concurrently": "^9.2.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2",
+    "vite-plugin-singlefile": "^2.3.4"
+  }
+}
