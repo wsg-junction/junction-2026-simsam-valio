@@ -6,3 +6,11 @@ data
 .git
 **/.env
 **/data/*.db*
+**/.env.*
+.tmp
+.aws
+.codex
+.agents
+apps/mcp/data
+apps/api/data
+*.pem

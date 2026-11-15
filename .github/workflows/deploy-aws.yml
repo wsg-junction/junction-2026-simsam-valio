@@ -1,0 +1,75 @@
+name: Build and deploy the complete AWS app
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: aws-${{ inputs.service-name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'eu-central-1' }}
+      AWS_PAGER: ''
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      SERVICE_NAME: ${{ inputs.service-name }}
+      LOCAL_IMAGE: valio:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check types and regressions
+        env:
+          DATA_DIR: ${{ runner.temp }}/valio-tests
+          VALIO_DATA_MODE: mock
+        run: |
+          npm run typecheck
+          npm test --workspace @valio/mcp
+          node --test scripts/deploy-aws.test.mjs
+      - name: Build the gateway, website and console
+        run: docker build --platform linux/amd64 -f apps/mcp/Dockerfile -t "$LOCAL_IMAGE" .
+      - name: Smoke test the complete container
+        run: |
+          docker run --detach --name valio-smoke -p 8787:8787 -e PUBLIC_URL=http://localhost:8787 "$LOCAL_IMAGE"
+          trap 'docker logs valio-smoke; docker rm --force valio-smoke' EXIT
+          node scripts/check-container.mjs
+      - name: Authenticate with AWS using OIDC
+        if: env.AWS_ROLE_ARN != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Authenticate with existing AWS key secrets
+        if: env.AWS_ROLE_ARN == ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Install the Lightsail image upload plugin
+        run: |
+          curl --fail --silent --show-error --location https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl -o "$RUNNER_TEMP/lightsailctl"
+          chmod +x "$RUNNER_TEMP/lightsailctl"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Upload and deploy; wait for a healthy HTTPS endpoint
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          VALIO_API_KEY: ${{ secrets.VALIO_API_KEY }}
+          VALIO_CUSTOMER_ID: ${{ vars.VALIO_CUSTOMER_ID }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: node scripts/deploy-aws.mjs

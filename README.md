@@ -2,15 +2,24 @@
 
 npm workspaces monorepo:
 
-| Path              | What                                                                      |
-| ----------------- | ------------------------------------------------------------------------- |
+| Path              | What                                                                                                                                                                                                            |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/web`        | **Aimo Assistant**: mock ChatGPT-style chat for the buyer (shadcn), with automations, limits and requirements; served by the gateway at `/assistant`. The old shop pages under `src/pages` are no longer routed |
-| `apps/api`        | Fastify backend (orders, warnings, notifications)                         |
-| `apps/mcp`        | **Agent Gateway mock**: MCP server + MCP Apps widgets for external purchasing agents (see its README) |
-| `apps/console`    | **Agent Console**: buyer-facing app (shadcn) for MCP tokens, approvals, orders, mandate and audit log; served by the gateway at `/app` |
-| `packages/shared` | `@valio/shared`: shared model (Zod schemas/types) and the product catalog |
+| `apps/api`        | Fastify backend (orders, warnings, notifications)                                                                                                                                                               |
+| `apps/mcp`        | **Agent Gateway mock**: MCP server + MCP Apps widgets for external purchasing agents (see its README)                                                                                                           |
+| `apps/console`    | **Agent Console**: buyer-facing app (shadcn) for MCP tokens, approvals, orders, mandate and audit log; served by the gateway at `/app`                                                                          |
+| `packages/shared` | `@valio/shared`: shared model (Zod schemas/types) and the product catalog                                                                                                                                       |
 
 Requires Node.js >= 22.13 (uses the built-in `node:sqlite`).
+
+## Deploy to AWS
+
+Add the GitHub secrets `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and optionally `GEMINI_API_KEY`,
+then push to `main`. The workflow builds and deploys the website, chat API, MCP server and console
+together to Lightsail Containers, creates the service on the first run, and prints its HTTPS URLs.
+The AWS identity needs the included Lightsail deployment policy. See the
+[AWS deployment guide](docs/aws-deployment.md) for the one-time setup, OIDC option, development services,
+and demo persistence limits.
 
 ## Setup
 
@@ -24,17 +33,17 @@ npm run dev                             # api on :3001, web on :5173 (proxies /a
 
 All routes are prefixed with `/api`.
 
-| Method  | Route                       | Purpose                                                     |
-| ------- | --------------------------- | ----------------------------------------------------------- |
-| `GET`   | `/events`                   | Server-Sent Events: `{ collection, id? }` on every change   |
-| `GET`   | `/orders?ids=a,b`           | Orders by id, newest first                                  |
-| `GET`   | `/orders/:id`               | Single order                                                |
+| Method  | Route                       | Purpose                                                      |
+| ------- | --------------------------- | ------------------------------------------------------------ |
+| `GET`   | `/events`                   | Server-Sent Events: `{ collection, id? }` on every change    |
+| `GET`   | `/orders?ids=a,b`           | Orders by id, newest first                                   |
+| `GET`   | `/orders/:id`               | Single order                                                 |
 | `POST`  | `/orders`                   | Create order (+ checkout warnings); API assigns id/createdAt |
-| `PUT`   | `/orders/:id`               | Replace order (picking dashboard)                           |
-| `GET`   | `/warnings`                 | All warnings                                                |
-| `GET`   | `/notifications?orderIds=…` | Notifications for orders                                    |
-| `POST`  | `/notifications`            | Create notification                                         |
-| `PATCH` | `/notifications/:id`        | Mark as read                                                |
+| `PUT`   | `/orders/:id`               | Replace order (picking dashboard)                            |
+| `GET`   | `/warnings`                 | All warnings                                                 |
+| `GET`   | `/notifications?orderIds=…` | Notifications for orders                                     |
+| `POST`  | `/notifications`            | Create notification                                          |
+| `PATCH` | `/notifications/:id`        | Mark as read                                                 |
 
 Data is stored in SQLite (`DATABASE_PATH`, default `apps/api/data/valio.db`).
 
